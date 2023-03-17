@@ -378,6 +378,44 @@ class LeafNode extends BPlusNode {
         // use the constructor that reuses an existing page instead of fetching a
         // brand new one.
 
+        // get page and buffer
+        Page page = bufferManager.fetchPage(treeContext, pageNum);
+        Buffer buf = page.getBuffer();
+
+        //check the node type
+        //to make sure the first byte is 1(a leaf node)
+        byte nodeType = buf.get();
+        assert(nodeType == (byte) 1);
+
+        //get info of the sibling page
+        long rightSiblingPageId = buf.getLong();
+
+        //check if the sibling info is -1
+        //If it is, it means the node has not right sibling,
+        //and store the rightSibling as null
+        Optional<Long> rightSibling = Optional.ofNullable(rightSiblingPageId == -1 ? null : rightSiblingPageId);
+
+        //how many pairs of (DataBox, RecordId) this node has
+        int numOfRidPairs = buf.getInt();
+
+        //Lists to store keys(DataBox) and rids(RecordId)
+        List<DataBox> keys = new ArrayList<>();
+        List<RecordId> rids = new ArrayList<>();
+
+        //What type of data this node stores
+        Type nodeKeyType = metadata.getKeySchema();
+
+        //Iterate for numOfRidPairs times
+        //Each time, fetch a key(DataBox)
+        //and a rid(RecordId) from buffer
+        //and add them to their own lists
+        for(int i = 0; i < numOfRidPairs; i++){
+            keys.add(DataBox.fromBytes(buf, nodeKeyType));
+            rids.add(RecordId.fromBytes(buf));
+        }
+
+        //return the result
+        return new LeafNode(metadata, bufferManager, page, keys, rids, rightSibling, treeContext);
     }
 
     // Builtins ////////////////////////////////////////////////////////////////
