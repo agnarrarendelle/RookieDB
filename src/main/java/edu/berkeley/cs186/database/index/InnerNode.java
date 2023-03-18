@@ -81,8 +81,12 @@ class InnerNode extends BPlusNode {
     @Override
     public LeafNode get(DataBox key) {
         // TODO(proj2): implement
+
+        //find the index of the LeafNode that the key is stored on
         int childNodeIndex = numLessThanEqual(key, this.keys);
+        //get the LeafNode with the index
         BPlusNode child = getChild(childNodeIndex);
+        //call get(key) on the LeafNode
         return child.get(key);
     }
 
@@ -92,6 +96,7 @@ class InnerNode extends BPlusNode {
         assert(children.size() > 0);
         // TODO(proj2): implement
 
+        //call getLeftmostLeaf on the leftMost LeafNode
         return getChild(0).getLeftmostLeaf();
     }
 
@@ -99,25 +104,40 @@ class InnerNode extends BPlusNode {
     @Override
     public Optional<Pair<DataBox, Long>> put(DataBox key, RecordId rid) {
         // TODO(proj2): implement
+
+        //get the index of the LeafNode that
+        //the new (key, rid) is going to be stored on
         int childNodeIndex = numLessThanEqual(key, this.keys);
+
+        //get the LeafNode with the index
         BPlusNode child = getChild(childNodeIndex);
+
+        //call put on the LeafNode to insert the pair
         Optional<Pair<DataBox, Long>> result = child.put(key,rid);
+
+        //check if the LeafNode overflows, and return if not
         if(!result.isPresent()){
             return Optional.empty();
         }
 
+        //If the LeafNode overflows,
+        //it will return a pair of(split key, right split node page number)
         Pair<DataBox, Long> newKeyAndPageNum = result.get();
 
+        //add the returned split key and new node page number into self
         this.keys.add(childNodeIndex, newKeyAndPageNum.getFirst());
         this.children.add(childNodeIndex+1, newKeyAndPageNum.getSecond());
 
         int order = this.metadata.getOrder();
 
+        //if the newly added key and page number does not cause the node to overflow
+        //return immediately
         if(this.keys.size() < 2 * order + 1){
             sync();
             return Optional.empty();
         }
 
+        //if the node overflows, we need to split it again
 
         //construct new keys and rids for split right node and original node
         List<DataBox> leftKeys = this.keys.subList(0, order);
@@ -125,10 +145,14 @@ class InnerNode extends BPlusNode {
         List<Long> leftChildren = this.children.subList(0, order+1);
         List<Long> rightChildren = this.children.subList(order+1, this.children.size());
 
+        //first DataBox on the new split right node
         DataBox splitKey = this.keys.get(order);
 
+        //update the keys and children to the remaining ones after the split
         this.keys = leftKeys;
         this.children = leftChildren;
+
+        //construct the new split right node and return it with the split key
         InnerNode splitRightNode = new InnerNode(this.metadata, this.bufferManager, rightKeys, rightChildren,treeContext);
         sync();
         return Optional.of(new Pair<>(splitKey, splitRightNode.getPage().getPageNum()));
