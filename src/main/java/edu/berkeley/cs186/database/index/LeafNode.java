@@ -194,8 +194,8 @@ class LeafNode extends BPlusNode {
 
         //construct new keys and rids for split right node and original node
         List<DataBox> leftKeys = this.keys.subList(leftKeyStartIndex, leftKeyNumber);
+        List<RecordId> leftRids = this.rids.subList(leftKeyStartIndex, leftKeyNumber);
         List<DataBox> rightKeys = this.keys.subList(rightKeyStartIndex, rightKeyNumber);
-        List<RecordId> leftRids = this.rids.subList(rightKeyStartIndex, rightKeyNumber);
         List<RecordId> rightRids = this.rids.subList(rightKeyStartIndex, rightKeyNumber);
 
         //construct the new right split node.
