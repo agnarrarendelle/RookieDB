@@ -354,7 +354,7 @@ public class BPlusTree {
 
         // TODO(proj2): implement
 
-        return;
+        this.root.remove(key);
     }
 
     // Helpers /////////////////////////////////////////////////////////////////
