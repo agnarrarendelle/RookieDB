@@ -303,6 +303,36 @@ public class BPlusTree {
         // Use the provided updateRoot() helper method to change
         // the tree's root if the old root splits.
 
+        //bulkload the root with the data
+        Optional<Pair<DataBox, Long>> res = root.bulkLoad(data, fillFactor);
+
+        //check if the root overflows
+        //If it does, continue looping until every data is inserted
+        while(res.isPresent()){
+            //get the overflow key and the new right most node
+            Pair<DataBox, Long> newPair = res.get();
+
+            //arrays to store keys and children in new root node
+            List<DataBox> newKeys = new ArrayList<>();
+            List<Long> newChildren = new ArrayList<>();
+
+            //add the overflown key
+            newKeys.add(newPair.getFirst());
+
+            //first add the original root so that it will become
+            //the first children of the new root
+            newChildren.add(this.root.getPage().getPageNum());
+
+            //add the new rightmost node caused by the overflow
+            newChildren.add(newPair.getSecond());
+
+            //construct the new root with the data and update the old root to new root
+            InnerNode newRoot = new InnerNode(this.metadata, this.bufferManager, newKeys, newChildren, this.lockContext);
+            updateRoot(newRoot);
+            res = root.bulkLoad(data, fillFactor);
+
+        }
+
         return;
     }
 
