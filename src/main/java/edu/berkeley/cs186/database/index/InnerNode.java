@@ -139,23 +139,7 @@ class InnerNode extends BPlusNode {
 
         //if the node overflows, we need to split it again
 
-        //construct new keys and rids for split right node and original node
-        List<DataBox> leftKeys = this.keys.subList(0, order);
-        List<DataBox> rightKeys = this.keys.subList(order+1, this.keys.size());
-        List<Long> leftChildren = this.children.subList(0, order+1);
-        List<Long> rightChildren = this.children.subList(order+1, this.children.size());
-
-        //first DataBox on the new split right node
-        DataBox splitKey = this.keys.get(order);
-
-        //update the keys and children to the remaining ones after the split
-        this.keys = leftKeys;
-        this.children = leftChildren;
-
-        //construct the new split right node and return it with the split key
-        InnerNode splitRightNode = new InnerNode(this.metadata, this.bufferManager, rightKeys, rightChildren,treeContext);
-        sync();
-        return Optional.of(new Pair<>(splitKey, splitRightNode.getPage().getPageNum()));
+        return split(order);
     }
 
     // See BPlusNode.bulkLoad.
