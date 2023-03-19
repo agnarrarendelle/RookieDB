@@ -205,7 +205,7 @@ public class BPlusTree {
 
         // TODO(proj2): Return a BPlusTreeIterator.
 
-        return Collections.emptyIterator();
+        return new BPlusTreeIterator(root.getLeftmostLeaf());
     }
 
     /**
@@ -238,7 +238,7 @@ public class BPlusTree {
 
         // TODO(proj2): Return a BPlusTreeIterator.
 
-        return Collections.emptyIterator();
+        return  new BPlusTreeIterator(root.get(key), key);
     }
 
     /**
@@ -424,18 +424,45 @@ public class BPlusTree {
     private class BPlusTreeIterator implements Iterator<RecordId> {
         // TODO(proj2): Add whatever fields and constructors you want here.
 
+        LeafNode currNode;
+        Iterator<RecordId> currIter;
+
+        BPlusTreeIterator(LeafNode node) {
+            this.currNode = node;
+            currIter = node.scanAll();
+        }
+
+        BPlusTreeIterator(LeafNode node, DataBox key) {
+            this.currNode = node;
+            this.currIter = node.scanGreaterEqual(key);
+        }
+
         @Override
         public boolean hasNext() {
             // TODO(proj2): implement
-
-            return false;
+            if (currIter.hasNext()) {
+                return true;
+            } else {
+                Optional<LeafNode> rightSibling = currNode.getRightSibling();
+                if (rightSibling.isPresent()) {
+                    currNode = rightSibling.get();
+                    currIter = currNode.scanAll();
+                    return true;
+                } else {
+                    return false;
+                }
+            }
         }
 
         @Override
         public RecordId next() {
             // TODO(proj2): implement
 
-            throw new NoSuchElementException();
+            if (currIter.hasNext()) {
+                return currIter.next();
+            } else {
+                throw new NoSuchElementException();
+            }
         }
     }
 }
