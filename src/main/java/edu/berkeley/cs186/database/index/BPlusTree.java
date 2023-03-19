@@ -147,7 +147,9 @@ public class BPlusTree {
 
         // TODO(proj2): implement
 
-        return Optional.empty();
+        LeafNode child = this.root.get(key);
+
+        return child.getKey(key);
     }
 
     /**
