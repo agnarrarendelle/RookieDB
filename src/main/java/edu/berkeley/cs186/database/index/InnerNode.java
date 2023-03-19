@@ -148,6 +148,44 @@ class InnerNode extends BPlusNode {
             float fillFactor) {
         // TODO(proj2): implement
 
+        //get right most child node
+        BPlusNode rightMostChild = getChild(this.children.size()-1);
+
+        //bulkload the data into that child
+        Optional<Pair<DataBox, Long>> res = rightMostChild.bulkLoad(data, fillFactor);
+
+        int order = this.metadata.getOrder();
+        int maxNumOfNode = 2 * order + 1;
+
+        //if the result is not empty(the child overflows)
+        while(res.isPresent()){
+            //extract the overflow key and
+            //the page that stores the new right sibling
+            //created by the overflown child
+            //The new created right sibling becomes
+            //the rightmost child
+            Pair<DataBox, Long> newPair = res.get();
+            DataBox newKey = newPair.getFirst();
+            long newKeyPageNum = newPair.getSecond();
+
+            //add the overflow key and the new right most node into self's arrays
+            this.keys.add(newKey);
+            this.children.add(newKeyPageNum);
+
+            //check if the original node overflows as well
+            //and split itself if it does
+            if(this.keys.size() >= maxNumOfNode){
+                return split(order);
+            }
+
+            //fetch the new right most child after the bulkloading
+            rightMostChild = getChild(this.children.size()-1);
+
+            //bulkload the new right most child node
+            res = rightMostChild.bulkLoad(data, fillFactor);
+        }
+
+        sync();
         return Optional.empty();
     }
 
