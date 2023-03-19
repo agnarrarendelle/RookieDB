@@ -228,8 +228,46 @@ class LeafNode extends BPlusNode {
     public Optional<Pair<DataBox, Long>> bulkLoad(Iterator<Pair<DataBox, RecordId>> data,
                                                   float fillFactor) {
         // TODO(proj2): implement
+        int order = this.metadata.getOrder();
 
-        return Optional.empty();
+        //The number of keys and records allowed in this node
+        int maxNumOfNodes = (int) Math.ceil(2 * order * fillFactor);
+
+        //Keep fetching new key and records as long as the node is not full
+        //and there's still some data left
+        while (this.keys.size() < maxNumOfNodes && data.hasNext()){
+            Pair<DataBox, RecordId> pair = data.next();
+            this.keys.add(pair.getFirst());
+            this.rids.add(pair.getSecond());
+        }
+
+        //if there are more keys than what's allowed by fillFactor(overflow)
+
+        //check if there's till remaining data
+        //If there is, preparing to create a new right sibling node
+        //and insert the overflow key/record into it
+        if(data.hasNext()){
+            //keys and records in the new right sibling node
+            List<DataBox> rightSiblingKeys = new ArrayList<>();
+            List<RecordId> rightSiblingRids = new ArrayList<>();
+
+            //insert the overflow key/record into the right sibling
+            Pair<DataBox,RecordId> remainingPair = data.next();
+            rightSiblingKeys.add(remainingPair.getFirst());
+            rightSiblingRids.add(remainingPair.getSecond());
+
+            //create the right sibling node
+            LeafNode newRightSiblingNode = new LeafNode(this.metadata, this.bufferManager, rightSiblingKeys, rightSiblingRids, this.rightSibling, treeContext);
+
+            //make the rightSibling of the original node the new right sibling
+            this.rightSibling = Optional.of(newRightSiblingNode.getPage().getPageNum());
+            sync();
+
+            //return the overflow key and the page that stores the new right sibling
+            return  Optional.of(new Pair<>(remainingPair.getFirst(), this.rightSibling.get()));
+        }
+        sync();
+        return  Optional.empty();
     }
 
     // See BPlusNode.remove.
