@@ -50,10 +50,12 @@ public class BNLJOperator extends JoinOperator {
      */
     private class BNLJIterator implements Iterator<Record>{
         // Iterator over all the records of the left source
+        //used to fetch next block from left source
         private Iterator<Record> leftSourceIterator;
         // Iterator over all the records of the right source
         private BacktrackingIterator<Record> rightSourceIterator;
         // Iterator over records in the current block of left pages
+        // used to fetch next record in the current left block
         private BacktrackingIterator<Record> leftBlockIterator;
         // Iterator over records in the current right page
         private BacktrackingIterator<Record> rightPageIterator;
