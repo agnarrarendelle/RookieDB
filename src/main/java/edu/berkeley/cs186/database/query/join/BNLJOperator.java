@@ -136,7 +136,45 @@ public class BNLJOperator extends JoinOperator {
          */
         private Record fetchNextRecord() {
             // TODO(proj3_part1): implement
-            return null;
+            while (true) {
+                //predicate:none
+                //case 1:the current right page still has record left
+                if (this.rightPageIterator.hasNext()) {
+                //predicate:
+                //1. current right page has no record left
+                //case 2:the current left block still has record left
+                } else if (this.leftBlockIterator.hasNext()) {
+                    this.leftRecord = this.leftBlockIterator.next();
+                    this.rightPageIterator.reset();
+                //predicate:
+                //1. current right page has no record left
+                //2. current left block has no record left
+                //case 3:the right source still has pages left
+                } else if (this.rightSourceIterator.hasNext()) {
+                    this.leftBlockIterator.reset();
+                    this.leftRecord = this.leftBlockIterator.next();
+                    fetchNextRightPage();
+                //predicate:
+                //1. current right page has no record left
+                //2. current left block still has no record left
+                //3. the right source has no more pages
+                //case 4:the right source still has page left
+                } else if (this.leftSourceIterator.hasNext()) {
+                    fetchNextLeftBlock();
+                    this.rightSourceIterator.reset();
+                    fetchNextRightPage();
+                } else {
+                    return null;
+                }
+
+                //get next right record
+                Record rightRecord = rightPageIterator.next();
+                //if the next right record matches the current left record
+                //join them and return the result
+                if (compare(this.leftRecord, rightRecord) == 0) {
+                    return this.leftRecord.concat(rightRecord);
+                }
+            }
         }
 
         /**
