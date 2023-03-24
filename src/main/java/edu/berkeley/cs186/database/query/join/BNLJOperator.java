@@ -89,6 +89,18 @@ public class BNLJOperator extends JoinOperator {
          */
         private void fetchNextLeftBlock() {
             // TODO(proj3_part1): implement
+            //If the left source has not more records
+            //simply return and do nothing
+            if(!this.leftSourceIterator.hasNext())
+                return;
+
+            //create a block-sized( (numOfBuffers - 2) pages) chunk of records,
+            //and return an iterator to it
+            this.leftBlockIterator = QueryOperator.getBlockIterator(this.leftSourceIterator, getLeftSource().getSchema(), numBuffers - 2);
+            //mark the first record in the block so that it can be used later
+            this.leftBlockIterator.markNext();
+            //set leftRecord to the first record in the block
+            this.leftRecord = this.leftBlockIterator.next();
         }
 
         /**
@@ -103,6 +115,15 @@ public class BNLJOperator extends JoinOperator {
          */
         private void fetchNextRightPage() {
             // TODO(proj3_part1): implement
+            //If the right source has not more records
+            //simply return and do nothing
+            if(!this.rightSourceIterator.hasNext())
+                return;
+
+            //fetch the next page of records from right source and return an iterator to it
+            this.rightPageIterator = QueryOperator.getBlockIterator(this.rightSourceIterator, getRightSource().getSchema(),1);
+            //mark the first record in the page so that it can be used later
+            this.rightPageIterator.markNext();
         }
 
         /**
