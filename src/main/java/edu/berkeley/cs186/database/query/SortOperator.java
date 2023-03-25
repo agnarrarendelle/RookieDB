@@ -121,7 +121,56 @@ public class SortOperator extends QueryOperator {
     public Run mergeSortedRuns(List<Run> runs) {
         assert (runs.size() <= this.numBuffers - 1);
         // TODO(proj3_part1): implement
-        return null;
+
+        //a priority queue to store a Pair where
+        //Record:a Record in an Iterator
+        //Integer: the index of the Iterator that stores the Record
+        PriorityQueue<Pair<Record, Integer>> queue = new PriorityQueue<>((a, b) -> comparator.compare(a.getFirst(), b.getFirst()));
+
+        //a list that stores the iterators gained from each Run in <runs> arg
+        List<Iterator<Record>> runIterators = new ArrayList<>();
+
+        //a loop to loop over the <runs> arg
+        int runIndex = 0;
+        for(Run run : runs){
+            //get the iterator that iterates the Records in the current Run
+            Iterator<Record> runRecordIter = run.iterator();
+
+            //add the iterator to the iterator array
+            runIterators.add(runRecordIter);
+
+            //if the iterator has at least Record
+            //add the Pair<the first Record, the index of the current iterator>
+            //to the priority queue
+            if(runRecordIter.hasNext()){
+                queue.add(new Pair<>(runRecordIter.next(),runIndex++));
+            }
+        }
+
+        //The merged run after merging all Runs
+        Run mergedSortedRuns = new Run(this.transaction, getSchema());
+
+        //Loop until the priority queue is empty
+        while(!queue.isEmpty()){
+            //Get the next Pair
+            Pair<Record, Integer> pair = queue.poll();
+            Record currRecord = pair.getFirst();
+            int currIndex = pair.getSecond();
+
+            //get the iterator from the index of the pair
+            Iterator<Record> currRunIter = runIterators.get(currIndex);
+
+            //Add the current Record to the merged result
+            mergedSortedRuns.add(currRecord);
+
+            //If the iterator retrieved from the index of the current Pair has more Record
+            //add the next Record into the queue
+            if(currRunIter.hasNext()){
+                queue.add(new Pair<>(currRunIter.next(), currIndex));
+            }
+        }
+
+        return mergedSortedRuns;
     }
 
     /**
