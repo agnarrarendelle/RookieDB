@@ -64,7 +64,9 @@ public class SortOperator extends QueryOperator {
     }
 
     @Override
-    public boolean materialized() { return true; }
+    public boolean materialized() {
+        return true;
+    }
 
     @Override
     public BacktrackingIterator<Record> backtrackingIterator() {
@@ -108,7 +110,7 @@ public class SortOperator extends QueryOperator {
      * merging the input runs. You should use a Priority Queue (java.util.PriorityQueue)
      * to determine which record should be should be added to the output run
      * next.
-     *
+     * <p>
      * You are NOT allowed to have more than runs.size() records in your
      * priority queue at a given moment. It is recommended that your Priority
      * Queue hold Pair<Record, Integer> objects where a Pair (r, i) is the
@@ -132,7 +134,7 @@ public class SortOperator extends QueryOperator {
 
         //a loop to loop over the <runs> arg
         int runIndex = 0;
-        for(Run run : runs){
+        for (Run run : runs) {
             //get the iterator that iterates the Records in the current Run
             Iterator<Record> runRecordIter = run.iterator();
 
@@ -142,8 +144,8 @@ public class SortOperator extends QueryOperator {
             //if the iterator has at least Record
             //add the Pair<the first Record, the index of the current iterator>
             //to the priority queue
-            if(runRecordIter.hasNext()){
-                queue.add(new Pair<>(runRecordIter.next(),runIndex++));
+            if (runRecordIter.hasNext()) {
+                queue.add(new Pair<>(runRecordIter.next(), runIndex++));
             }
         }
 
@@ -151,7 +153,7 @@ public class SortOperator extends QueryOperator {
         Run mergedSortedRuns = new Run(this.transaction, getSchema());
 
         //Loop until the priority queue is empty
-        while(!queue.isEmpty()){
+        while (!queue.isEmpty()) {
             //Get the next Pair
             Pair<Record, Integer> pair = queue.poll();
             Record currRecord = pair.getFirst();
@@ -165,7 +167,7 @@ public class SortOperator extends QueryOperator {
 
             //If the iterator retrieved from the index of the current Pair has more Record
             //add the next Record into the queue
-            if(currRunIter.hasNext()){
+            if (currRunIter.hasNext()) {
                 queue.add(new Pair<>(currRunIter.next(), currIndex));
             }
         }
@@ -203,7 +205,7 @@ public class SortOperator extends QueryOperator {
         int numOfRunsToMergeEachTime = this.numBuffers - 1;
 
         //Loop over all Runs in <runs> arg <numOfRunsToMergeEachTime> each time
-        for(int i = 0; i < runs.size(); i += numOfRunsToMergeEachTime){
+        for (int i = 0; i < runs.size(); i += numOfRunsToMergeEachTime) {
 
             //create a list that contains <numOfRunsToMergeEachTime> Runs
             List<Run> currRuns = runs.subList(i, i + numOfRunsToMergeEachTime);
@@ -235,7 +237,7 @@ public class SortOperator extends QueryOperator {
         List<Run> passes = new ArrayList<>();
 
         //Loop until sourceIterator has no more Records
-        while(sourceIterator.hasNext()){
+        while (sourceIterator.hasNext()) {
             //get a Block-size chunk of Records from sourceIterator
             Iterator<Record> recordBlockIter = getBlockIterator(sourceIterator, getSchema(), this.numBuffers);
 
@@ -247,7 +249,7 @@ public class SortOperator extends QueryOperator {
         }
 
         //Merging the Runs in passes until they have all merged into a single Run
-        while(passes.size() > 1){
+        while (passes.size() > 1) {
             passes = mergePass(passes);
         }
 
