@@ -87,7 +87,20 @@ public class SortOperator extends QueryOperator {
      */
     public Run sortRun(Iterator<Record> records) {
         // TODO(proj3_part1): implement
-        return null;
+
+        //a run to store the sorted records
+        Run run = new Run(this.transaction, this.getSchema());
+
+        //create a list to store the element in the Record iterator
+        //and add the remaining elements in the iterator to the list
+        List<Record> recordList = new LinkedList<>();
+        records.forEachRemaining(recordList::add);
+        //sort the list
+        recordList.sort(comparator);
+
+        //add the sorted list to the run
+        run.addAll(recordList);
+        return run;
     }
 
     /**
