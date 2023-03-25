@@ -107,6 +107,8 @@ public class GHJOperator extends JoinOperator {
         // The index of the join column for the probe records
         int probeColumnIndex;
 
+        //The smaller Partition is the "build" Table
+        //The bigger Partition is the "probe" Table
         if (leftPartition.getNumPages() <= this.numBuffers - 2) {
             buildRecords = leftPartition;
             buildColumnIndex = getLeftColumnIndex();
@@ -129,6 +131,48 @@ public class GHJOperator extends JoinOperator {
         // You shouldn't refer to any variable starting with "left" or "right"
         // here, use the "build" and "probe" variables we set up for you.
         // Check out how SHJOperator implements this function if you feel stuck.
+
+        //A temp HashTable to store the hashed record from "build" Partition
+        Map<DataBox, List<Record>> hashTable = new HashMap<>();
+
+        //Loop over the records in the "build" Partition
+        for (Record buildRecord: buildRecords) {
+
+            //Get the value of the record that is the Join Key
+            DataBox buildTableJoinValue = buildRecord.getValue(buildColumnIndex);
+
+            //Put the Join Key into the HashTable if it does not exist
+            hashTable.putIfAbsent(buildTableJoinValue, new ArrayList<>());
+
+            //Add the current record to the HashTable by the Join Key
+            hashTable.get(buildTableJoinValue).add(buildRecord);
+        }
+
+        //Loop over the "probe" Partition
+        for (Record probeRecord: probeRecords){
+
+            //Get the value of the record that is the Join Key
+            DataBox probeTableJoinValue = probeRecord.getValue(probeColumnIndex);
+
+            //If the key does not exist in the HashTable, then there is nothing
+            //to join, so simpy skip the record
+            if (!hashTable.containsKey(probeTableJoinValue)) continue;
+
+            //If the Join Key exists in the HashTable,
+            //loop over all the Records in the bucket
+            for(Record buildRecord: hashTable.get(probeTableJoinValue)){
+
+                //Check the order of the joined records,
+                //and concat the "probe" Record and the "build" Record in different order
+                //depending on the order
+                Record joinedRecord = probeFirst ?
+                        probeRecord.concat(buildRecord) :
+                        buildRecord.concat(probeRecord);
+
+                //Add the joined Record to the result
+                this.joinedRecords.add(joinedRecord);
+            }
+        }
     }
 
     /**
