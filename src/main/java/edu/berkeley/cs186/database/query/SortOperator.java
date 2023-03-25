@@ -195,7 +195,26 @@ public class SortOperator extends QueryOperator {
      */
     public List<Run> mergePass(List<Run> runs) {
         // TODO(proj3_part1): implement
-        return Collections.emptyList();
+
+        //A list to store all Runs created by merged multiple smaller Runs
+        List<Run> allMergedRuns = new ArrayList<>();
+
+        //How many Runs to merge each time
+        int numOfRunsToMergeEachTime = this.numBuffers - 1;
+
+        //Loop over all Runs in <runs> arg <numOfRunsToMergeEachTime> each time
+        for(int i = 0; i < runs.size(); i += numOfRunsToMergeEachTime){
+
+            //create a list that contains <numOfRunsToMergeEachTime> Runs
+            List<Run> currRuns = runs.subList(i, i + numOfRunsToMergeEachTime);
+
+            //Merge those Runs
+            Run currMergedRuns = mergeSortedRuns(currRuns);
+
+            //Add the merged Runs into allMergedRuns
+            allMergedRuns.add(currMergedRuns);
+        }
+        return allMergedRuns;
     }
 
     /**
