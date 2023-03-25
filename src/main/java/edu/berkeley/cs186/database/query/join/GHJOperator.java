@@ -193,10 +193,36 @@ public class GHJOperator extends JoinOperator {
         this.partition(leftPartitions, leftRecords, true, pass);
         this.partition(rightPartitions, rightRecords, false, pass);
 
-        for (int i = 0; i < leftPartitions.length; i++) {
+        //Max num of Partitions that the Records can be hashed into
+        int numOfPartitions = leftPartitions.length;
+
+        //Max num of Buffers that the HashTable used to store the Partitions can take up
+        //2 buffers are subtracted for input/output Partition respectively
+        int maxBufferNumForPartition = this.numBuffers - 2;
+
+        for (int i = 0; i < numOfPartitions; i++) {
             // TODO(proj3_part1): implement the rest of grace hash join
             // If you meet the conditions to run the build and probe you should
             // do so immediately. Otherwise you should make a recursive call.
+
+            //Get the "build" and "probe" Partitions from the current index
+            Partition currLeftPartition = leftPartitions[i];
+            Partition currRightPartition = rightPartitions[i];
+
+            //Check if either of the current "build" and "probe" Partitions is too large
+            boolean isLeftPartitionTooBig =  currLeftPartition.getNumPages() > maxBufferNumForPartition;
+            boolean isRightPartitionTooBig =  currRightPartition.getNumPages() > maxBufferNumForPartition;
+
+            //If both of the Partitions are not too large,
+            //simply build an in-memory HashTable and Join them
+            if (!isLeftPartitionTooBig && !isRightPartitionTooBig) {
+                buildAndProbe(currLeftPartition, currRightPartition);
+
+            //If either one is too large, recursively call run()
+            //to further partition them until they fit in memory
+            } else {
+                run(currLeftPartition, currRightPartition, pass + 1);
+            }
         }
     }
 
