@@ -230,7 +230,29 @@ public class SortOperator extends QueryOperator {
         Iterator<Record> sourceIterator = getSource().iterator();
 
         // TODO(proj3_part1): implement
-        return makeRun(); // TODO(proj3_part1): replace this!
+
+        //A list to store all passes that contains multiple Runs
+        List<Run> passes = new ArrayList<>();
+
+        //Loop until sourceIterator has no more Records
+        while(sourceIterator.hasNext()){
+            //get a Block-size chunk of Records from sourceIterator
+            Iterator<Record> recordBlockIter = getBlockIterator(sourceIterator, getSchema(), this.numBuffers);
+
+            //Sort this chunk of Records
+            Run sortedRun = sortRun(recordBlockIter);
+
+            //Add the sorted Run to the Passes
+            passes.add(sortedRun);
+        }
+
+        //Merging the Runs in passes until they have all merged into a single Run
+        while(passes.size() > 1){
+            passes = mergePass(passes);
+        }
+
+        //Return the result
+        return passes.get(0); // TODO(proj3_part1): replace this!
     }
 
     /**
