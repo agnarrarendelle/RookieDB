@@ -140,6 +140,78 @@ public class SortMergeOperator extends JoinOperator {
          */
         private Record fetchNextRecord() {
             // TODO(proj3_part1): implement
+
+            //If either leftRecord or rightRecord is null
+            //then there is nothing to perform join on
+            while(this.leftRecord != null && this.rightRecord != null){
+
+                //If the mark has not been set
+                if(!this.marked){
+
+                    //advance leftRecord until its join key is equal or greater than that of rightRecord
+                    while(compare(this.leftRecord, this.rightRecord)<0)
+                        this.leftRecord = this.leftIterator.next();
+
+                    //advance rightRecord until its join key is equal or greater than that of leftRecord
+                    while(compare(this.leftRecord, this.rightRecord)>0)
+                        this.rightRecord = this.rightIterator.next();
+
+                    //mark the current position of the rightIterator to get back to later
+                    //and set the mark
+                    this.rightIterator.markPrev();
+                    this.marked = true;
+                }
+
+                //If the join key from both records are the same,
+                //we can prepare to perform the join
+                if(compare(this.leftRecord, this.rightRecord)==0){
+
+                    //concat the rightRecord after the leftRecord
+                    //to get the next joined record
+                    Record nextRecord = leftRecord.concat(rightRecord);
+
+                    //If the rightIterator has more records,
+                    //update the rightRecord to the next record
+                    //and return the joined record
+                    if(this.rightIterator.hasNext()){
+                        this.rightRecord = this.rightIterator.next();
+                        return nextRecord;
+                    }
+
+                    //If the rightIterator has NO more records,
+                    //we need to reset it to the previously marked position
+                    this.rightIterator.reset();
+                    this.rightRecord = this.rightIterator.next();
+
+                    //Since there are no more rightRecords,
+                    //we can skip the current leftRecord
+                    //and set mark to false
+                    if(this.leftIterator.hasNext())
+                        this.marked = false;
+
+                    this.leftRecord = this.leftIterator.hasNext() ?
+                            this.leftIterator.next():
+                            null;
+
+                    return nextRecord;
+
+                    //If the join key from both records are NOT the same,
+                }else{
+
+                    //Reset the rightIterator to the previously marked position
+                    this.rightIterator.reset();
+                    this.rightRecord = this.rightIterator.next();
+
+                    //Advanced the leftRecord and remove the mark
+                    if(this.leftIterator.hasNext())
+                        this.marked = false;
+
+                    this.leftRecord = this.leftIterator.hasNext() ?
+                            this.leftIterator.next():
+                            null;
+                }
+            }
+
             return null;
         }
 
