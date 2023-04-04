@@ -577,6 +577,43 @@ public class QueryPlan {
         QueryOperator minOp = new SequentialScanOperator(this.transaction, table);
 
         // TODO(proj3_part2): implement
+
+        //Keep track of the minimum I/O to access a tabke
+        int minIOCost = minOp.estimateIOCost();
+
+        //Get a list of columns that are indexed in the table
+        List<Integer> indexedCols = getEligibleIndexColumns(table);
+
+        //Which index is chosen to access the table
+        int chosenIndexCol = -1;
+
+        //Loop over every indexed columns
+        for (int indexedCol : indexedCols) {
+            //Get the indexed column's predicate(>, <, =...)
+            SelectPredicate indexPredicate = this.selectPredicates.get(indexedCol);
+
+            //Get info about the index scan operator with the current indexed column
+            IndexScanOperator indexScanOperator = new IndexScanOperator(
+                    this.transaction,
+                    indexPredicate.tableName,
+                    indexPredicate.column,
+                    indexPredicate.operator,
+                    indexPredicate.value);
+
+            //How many I/O it takes to access the table with the current indexed column
+            int currIOCost = indexScanOperator.estimateIOCost();
+
+            //If the current I/O number is smaller than minIO,
+            //update the variables to the current indexed column's info
+            if (currIOCost >= minIOCost) continue;
+
+            minIOCost = currIOCost;
+            minOp = indexScanOperator;
+            chosenIndexCol = indexedCol;
+        }
+
+        //update minOp to become SELECT operator with the chosen indexed
+        minOp = addEligibleSelections(minOp, chosenIndexCol);
         return minOp;
     }
 
