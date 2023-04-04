@@ -683,6 +683,45 @@ public class QueryPlan {
         //      calculate the cheapest join with the new table (the one you
         //      fetched an operator for from pass1Map) and the previously joined
         //      tables. Then, update the result map if needed.
+        for (Map.Entry<Set<String>, QueryOperator> entry : prevMap.entrySet()) {
+            for (JoinPredicate currJoinPredicate : this.joinPredicates) {
+
+                String leftTable = currJoinPredicate.leftTable;
+                String leftCol = currJoinPredicate.leftColumn;
+                String rightTable = currJoinPredicate.rightTable;
+                String rightCol = currJoinPredicate.rightColumn;
+
+                Set<String> tables = entry.getKey();
+
+                boolean isTablesContainLeftTable = tables.contains(leftTable);
+                boolean isTablesContainRightTable = tables.contains(rightTable);
+
+                if ((isTablesContainLeftTable && isTablesContainRightTable) ||
+                        (!isTablesContainLeftTable && !isTablesContainRightTable)
+                )
+                    continue;
+
+                String missingTable = null;
+                QueryOperator cheapestJoinType = null;
+                HashSet<String> oneSet = new HashSet<>();
+                if (tables.contains(leftTable) && !tables.contains(rightTable)) {
+                    missingTable = rightTable;
+                    oneSet.add(missingTable);
+                    QueryOperator accessTableOperator = pass1Map.get(oneSet);
+                    cheapestJoinType = minCostJoinType(entry.getValue(), accessTableOperator, leftCol, rightCol);
+                } else if (!tables.contains(leftTable) && tables.contains(rightTable)) {
+                    missingTable = leftTable;
+                    oneSet.add(missingTable);
+                    QueryOperator accessTableOperator = pass1Map.get(oneSet);
+                    cheapestJoinType = minCostJoinType(entry.getValue(), accessTableOperator, rightCol, leftCol);
+                }
+
+                Set<String> resSet = new HashSet<>();
+                resSet.addAll(tables);
+                resSet.add(missingTable);
+                result.put(resSet, cheapestJoinType);
+            }
+        }
         return result;
     }
 
