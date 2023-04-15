@@ -22,6 +22,21 @@ public enum LockType {
             throw new NullPointerException("null lock type");
         }
         // TODO(proj4_part1): implement
+        //based on the Compatibility Matrix
+        switch (a){
+            case NL:
+                return true;
+            case IS:
+                return b != X;
+            case IX:
+                return b == NL || b == IS || b == IX;
+            case SIX:
+                return b == NL || b == IS;
+            case S:
+                return b == NL || b == IS || b == S;
+            case X:
+                return b == NL;
+        }
 
         return false;
     }
@@ -54,6 +69,20 @@ public enum LockType {
             throw new NullPointerException("null lock type");
         }
         // TODO(proj4_part1): implement
+        //If child has no lock, any type of parent lock can grand it a lock
+        if (childLockType==NL)
+            return true;
+
+        //  To get S or IS lock on a child, parent node must hold IS or IX .
+        //  To get X or IX on a child, parent node must hold IX or SIX
+        switch (parentLockType){
+            case IX:
+                return true;
+            case IS:
+                return childLockType == IS || childLockType == S;
+            case SIX:
+                return childLockType == IX || childLockType == X;
+        }
 
         return false;
     }
@@ -69,7 +98,22 @@ public enum LockType {
             throw new NullPointerException("null lock type");
         }
         // TODO(proj4_part1): implement
-
+        //If a node has no lock, any lock can be used on it
+        if(required == NL) return true;
+        //Two locks of same types can be replaced with each other
+        if(required == substitute) return true;
+        //Since X(exclusive) lock has the highest privileges,
+        //it can be substituted with any lock
+        if(substitute == X) return true;
+        //A lock can be substituted with only locks that have more or equal privileges
+        switch (required){
+            case S:
+                return substitute == SIX;
+            case IS:
+                return substitute == IX || substitute == SIX;
+            case IX:
+                return substitute == SIX;
+        }
         return false;
     }
 
