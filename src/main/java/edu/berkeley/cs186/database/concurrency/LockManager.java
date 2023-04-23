@@ -261,7 +261,7 @@ public class LockManager {
             Lock newLock = new Lock(name, lockType, transNum);
 
             //If the new lock is compatible with locks in the grant set of the resource,
-            //release all locks the transaction has on {releaseNames}
+            //release all locks the transaction has in {releaseNames}
             //except for the lock that is on the same resource as the new lock.
             //After releasing all locks that needs to be released,
             //add the new lock to the grant set of the resource and return
@@ -448,7 +448,7 @@ public class LockManager {
             }
 
             //If the new lock cannot be added to the grant set directly,
-            //add it to the end of the waiting queue of the resource
+            //add it to the FRONT of the waiting queue of the resource
             //and prepare to block the transaction
             LockRequest newLockRequest = new LockRequest(transaction, newLock);
             resourceEntry.addToQueue(newLockRequest, true);
