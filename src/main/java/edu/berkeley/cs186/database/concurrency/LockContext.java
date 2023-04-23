@@ -19,7 +19,7 @@ public class LockContext {
     // fields/methods as you see fit.
 
     // The underlying lock manager.
-    protected final LockManager lockman;
+    protected final LockManager lockMannager;
 
     // The parent LockContext object, or null if this LockContext is at the top of the hierarchy.
     protected final LockContext parent;
@@ -47,7 +47,7 @@ public class LockContext {
 
     protected LockContext(LockManager lockman, LockContext parent, String name,
                           boolean readonly) {
-        this.lockman = lockman;
+        this.lockMannager = lockman;
         this.parent = parent;
         if (parent == null) {
             this.name = new ResourceName(name);
@@ -252,7 +252,7 @@ public class LockContext {
      * `readable`
      */
     public synchronized LockContext childContext(String name) {
-        LockContext temp = new LockContext(lockman, this, name,
+        LockContext temp = new LockContext(lockMannager, this, name,
                 this.childLocksDisabled || this.readonly);
         LockContext child = this.children.putIfAbsent(name, temp);
         if (child == null) child = temp;
