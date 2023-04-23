@@ -255,7 +255,7 @@ public class TestLockManager {
         // Transaction 0 should have an X lock on table0
         assertEquals(LockType.X, lockman.getLockType(transactions[0], tables[0]));
 
-        // table0 should only have have an X lock from Transaction 0
+        // table0 should only have an X lock from Transaction 0
         List<Lock> expectedTable0Locks = Collections.singletonList(new Lock(tables[0], LockType.X, 0L));
         assertEquals(expectedTable0Locks, lockman.getLocks(tables[0]));
 
