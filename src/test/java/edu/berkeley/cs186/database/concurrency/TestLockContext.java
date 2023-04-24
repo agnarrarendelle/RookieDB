@@ -78,7 +78,7 @@ public class TestLockContext {
         tableLockContext.acquire(transactions[0], LockType.S);
         // both locks should have been acquired
         Assert.assertEquals(Arrays.asList(new Lock(dbLockContext.getResourceName(), LockType.IS, 0L),
-                new Lock(tableLockContext.getResourceName(), LockType.S, 0L)),
+                        new Lock(tableLockContext.getResourceName(), LockType.S, 0L)),
                 lockManager.getLocks(transactions[0]));
     }
 
@@ -90,8 +90,8 @@ public class TestLockContext {
         pageLockContext.acquire(transactions[0], LockType.S);
         // all three locks should have been acquired
         Assert.assertEquals(Arrays.asList(new Lock(dbLockContext.getResourceName(), LockType.IX, 0L),
-                new Lock(tableLockContext.getResourceName(), LockType.IS, 0L),
-                new Lock(pageLockContext.getResourceName(), LockType.S, 0L)),
+                        new Lock(tableLockContext.getResourceName(), LockType.IS, 0L),
+                        new Lock(pageLockContext.getResourceName(), LockType.S, 0L)),
                 lockManager.getLocks(transactions[0]));
     }
 
